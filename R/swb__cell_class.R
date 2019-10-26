@@ -1,9 +1,21 @@
-cellclass <- function(RootingDepth, AWC, latitude, grow_start, grow_stop) {
+#' Title
+#'
+#' @param rooting_depth
+#' @param AWC
+#' @param latitude
+#' @param grow_start
+#' @param grow_stop
+#'
+#' @return
+#' @export
+#'
+#' @examples
+new_model_cell <- function(rooting_depth, AWC, latitude, grow_start, grow_stop) {
 
   cel <- list(
-    rooting_depth=RootingDepth,
+    rooting_depth=rooting_depth,
     awc=AWC,
-    smc=RootingDepth * AWC,
+    smc=rooting_depth * AWC,
     latitude=latitude,
     grow_start=grow_start,
     grow_stop=grow_stop,

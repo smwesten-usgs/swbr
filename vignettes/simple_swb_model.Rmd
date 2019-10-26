@@ -1,0 +1,59 @@
+---
+title: "simple_swb_model"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{simple_swb_model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(swbr)
+library(magrittr)
+```
+
+
+```{r read data}
+
+df <- readr::read_table2("../data/Coshocton_climate_1999.txt")
+
+```
+
+```{r}
+
+swb <- new("ModelCell")
+
+month(swb)        <- df$month
+day(swb)          <- df$day
+year(swb)         <- df$year
+gross_precip(swb) <- df$precip
+tmin(swb)         <- df$tmin
+tmax(swb)         <- df$tmax
+
+make_date(swb)
+
+
+
+```
+
+```{r}
+
+calc_mean_air_temp(swb)
+make_date(swb)
+
+
+```
+
+
+```{r}
+
+calc_TM_heat_index(swb)
+
+```
