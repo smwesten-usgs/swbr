@@ -1,4 +1,5 @@
 library(R6)
+library(magrittr)
 
 ModelCell <- R6Class("ModelCell", 
   public = list(
@@ -27,12 +28,18 @@ ModelCell <- R6Class("ModelCell",
     gross_rainfall = 0,
     net_rainfall = 0,
     snowfall = 0,
+        monthly_mean_air_temp= 0.,
     calc_mean_air_temp = function() {
         self$tmean <- ( self$tmin + self$tmax ) / 2
+        self$tmean_C <- ( self$tmean - 32 ) * 5/9
+    },
+    calc_monthly_mean_air_temp = function() {
+      df <- data.frame(month=self$month, tmean_C=self$tmean_C)
+      self$monthly_mean_air_temp <-  df %>% dplyr::group_by(month) %>% dplyr::summarize(mean=mean(tmean_C)) %>% dplyr::select(-month) %>% dplyr::ungroup()
     }
   ),
   private = list(
     thornthwaite_heat_index_i = 0,
-    thornthwaite_exponent_a = 0
+    thornthwaite_exponent_a = 0.
   )
 )

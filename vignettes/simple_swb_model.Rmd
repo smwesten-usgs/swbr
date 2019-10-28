@@ -28,16 +28,17 @@ df <- readr::read_table2("../data/Coshocton_climate_1999.txt")
 
 ```{r}
 
-swb <- new("ModelCell")
+swb <- swbr::ModelCell$new()
 
-month(swb)        <- df$month
-day(swb)          <- df$day
-year(swb)         <- df$year
-gross_precip(swb) <- df$precip
-tmin(swb)         <- df$tmin
-tmax(swb)         <- df$tmax
+swb$month        <- df$month
+swb$day          <- df$day
+swb$year         <- df$year
+swb$gross_precip <- df$precip
+swb$tmin         <- df$tmin
+swb$tmax         <- df$tmax
 
-make_date(swb)
+swb$calc_mean_air_temp()
+swb$calc_monthly_mean_air_temp()
 
 
 
@@ -45,8 +46,8 @@ make_date(swb)
 
 ```{r}
 
-calc_mean_air_temp(swb)
-make_date(swb)
+#calc_mean_air_temp(swb)
+#make_date(swb)
 
 
 ```
@@ -54,6 +55,6 @@ make_date(swb)
 
 ```{r}
 
-calc_TM_heat_index(swb)
+#calc_TM_heat_index(swb)
 
 ```
