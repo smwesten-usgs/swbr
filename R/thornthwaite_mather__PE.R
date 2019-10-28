@@ -22,11 +22,8 @@ calc_TM_PET <- function(air_temp_C, heat_index_I, TM_a) {
   I <- heat_index_I
   a <- TM_a
 
-  if (air_temp_C < 26.5) {
-    result <- ifelse(air_temp_C > 0, 16. * (10*air_temp_C / I)^a, 0.)
-  } else {
-    result <- calc_TM_e_hi_temp(air_temp_C)
-  }
+  result <- ifelse (air_temp_C < 26.5, ifelse(air_temp_C > 0, 16. * (10*air_temp_C / I)^a, 0.),
+                    calc_TM_PE_hi_temp(air_temp_C) )
 
   return(result)
 

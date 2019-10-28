@@ -15,6 +15,6 @@ calc_TM_a <- function(heat_index_I) {
 
   I <- heat_index_I
 
-  return( 6.75E-7 * I^3 - 7.71E-5 * I^2 + 1.7921E-2 * I + 0.49239 )
+  return( 6.75E-7 * I^3 - 7.71E-5 * I^2 + 1.792E-2 * I + 0.49239 )
 
 }

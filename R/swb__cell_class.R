@@ -1,15 +1,3 @@
-#' Title
-#'
-#' @param rooting_depth
-#' @param AWC
-#' @param latitude
-#' @param grow_start
-#' @param grow_stop
-#'
-#' @return
-#' @export
-#'
-#' @examples
 new_model_cell <- function(rooting_depth, AWC, latitude, grow_start, grow_stop) {
 
   cel <- list(

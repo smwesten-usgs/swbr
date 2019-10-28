@@ -1,7 +1,12 @@
 library(R6)
 library(magrittr)
 
-ModelCell <- R6Class("ModelCell", 
+#' ModelCell class
+#'
+#' @export
+#' @examples
+#' # Integrative examples go here.
+ModelCell <- R6Class("ModelCell",
   public = list(
     day = 1,
     year = 1900,
@@ -28,18 +33,30 @@ ModelCell <- R6Class("ModelCell",
     gross_rainfall = 0,
     net_rainfall = 0,
     snowfall = 0,
-        monthly_mean_air_temp= 0.,
+    thornthwaite_heat_index_i = 0,
+    thornthwaite_annual_heat_index_I=0.,
+    thornthwaite_exponent_a = 0.,
+    monthly_mean_air_temp= 0.,
     calc_mean_air_temp = function() {
         self$tmean <- ( self$tmin + self$tmax ) / 2
         self$tmean_C <- ( self$tmean - 32 ) * 5/9
     },
     calc_monthly_mean_air_temp = function() {
       df <- data.frame(month=self$month, tmean_C=self$tmean_C)
-      self$monthly_mean_air_temp <-  df %>% dplyr::group_by(month) %>% dplyr::summarize(mean=mean(tmean_C)) %>% dplyr::select(-month) %>% dplyr::ungroup()
-    }
-  ),
-  private = list(
-    thornthwaite_heat_index_i = 0,
-    thornthwaite_exponent_a = 0.
+      self$monthly_mean_air_temp <-  df %>% dplyr::group_by(month) %>% dplyr::summarize(tmean_mo_C=mean(tmean_C)) %>% dplyr::pull(tmean_mo_C)
+    },
+    calc_monthly_heat_index_i = function() {
+      self$thornthwaite_heat_index_i <- calc_TM_i(self$monthly_mean_air_temp)
+      self$thornthwaite_annual_heat_index_I <- sum(self$thornthwaite_heat_index_i)
+    },
+    calc_monthly_heat_index_exponent = function() {
+      self$thornthwaite_exponent_a <- calc_TM_a(self$thornthwaite_annual_heat_index_I)
+    },
+    calc_TM_PET = function() {
+      self$reference_et0 <- calc_TM_PET(self$tmean_C,
+                                        self$thornthwaite_annual_heat_index_I, 
+                                        self$thornthwaite_exponent_a) / 25.4 /
+                                        lubridate::days_in_month(self$date)
+    } 
   )
 )
