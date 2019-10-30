@@ -15,15 +15,18 @@ ModelCell <- R6Class("ModelCell",
     available_water_capacity=0.,
     rooting_depth = 0.,
     curve_number = 0,
+    base_curve_number = 0,
     latitude = 0,
     soil_moisture_storage = 0,
     interception_storage = 0,
     snow_storage = 0,
     accumulated_potential_water_loss = 0,
+    unadjusted_pet=0,
     reference_et0 = 0,
     actual_et = 0,
     p_minus_pe = 0,
     gross_precip = 0,
+    sum_5_day_precip=0,
     tmin = 0,
     tmax = 0,
     tmean = 0,
@@ -53,10 +56,26 @@ ModelCell <- R6Class("ModelCell",
       self$thornthwaite_exponent_a <- calc_TM_a(self$thornthwaite_annual_heat_index_I)
     },
     calc_TM_PET = function() {
-      self$reference_et0 <- calc_TM_PET(self$tmean_C,
-                                        self$thornthwaite_annual_heat_index_I, 
-                                        self$thornthwaite_exponent_a) / 25.4 /
-                                        lubridate::days_in_month(self$date)
+      self$unadjusted_pet <- calc_TM_PET(self$tmean_C,
+                                         self$thornthwaite_annual_heat_index_I, 
+                                         self$thornthwaite_exponent_a) / 25.4 /
+                                         lubridate::days_in_month(self$date)
+    },
+    calc_TM_adjusted_PET = function() {
+      self$reference_et0 = calc_TM_PET_adj(self$month,
+                                           self$day,
+                                           self$year,
+                                           self$latitude, 
+                                           self$unadjusted_pet)
+    },
+    calc_sum_5_day_precip = function() {
+      self$sum_5_day_precip = calc_sum_5_day_precip(self$gross_precip)
+    },
+    calc_adjusted_curve_number =function() {
+      self$curve_number <- adjust_curve_number(swb$base_curve_number,
+                                                        swb$sum_5_day_precip,
+                                                        1.1,
+                                                        2.4)
     } 
   )
 )
