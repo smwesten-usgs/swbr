@@ -12,17 +12,24 @@ ModelCell <- R6Class("ModelCell",
     year = 1900,
     month = 1,
     date = lubridate::make_date(year=1900,month=1,day=1),
-    available_water_capacity=0.,
+    runoff=0.,
+    infiltration=0.,
     rooting_depth = 0.,
+    available_water_capacity = 0,
     curve_number = 0,
     base_curve_number = 0,
     latitude = 0,
+    # -- state variables --
     soil_moisture_storage = 0,
+    soil_moisture_storage_max = 0,
     interception_storage = 0,
+    interception_storage_max = 0,
     snow_storage = 0,
+    snow_storage_init = 0.,
     accumulated_potential_water_loss = 0,
     unadjusted_pet=0,
     reference_et0 = 0,
+    available_reference_et0=0,
     actual_et = 0,
     p_minus_pe = 0,
     gross_precip = 0,
@@ -33,13 +40,25 @@ ModelCell <- R6Class("ModelCell",
     tmin_C = 0,
     tmax_C = 0,
     tmean_C = 0,
+    fraction_as_rain = 0.,
     gross_rainfall = 0,
+    potential_interception = 0,
+    interception_evap=0,
+    growing_season_interception_value = 0.08,
+    nongrowing_season_interception_value = 0.02,
+    interception = 0,
     net_rainfall = 0,
     snowfall = 0,
+    potential_snowmelt = 0,
+    snowmelt = 0,
+    # -- Thornthwaite-Mather related parameter values --
     thornthwaite_heat_index_i = 0,
     thornthwaite_annual_heat_index_I=0.,
     thornthwaite_exponent_a = 0.,
     monthly_mean_air_temp= 0.,
+    growing_season_start = "05/01",
+    growing_season_end = "09/15",
+    is_growing_season=FALSE,
     calc_mean_air_temp = function() {
         self$tmean <- ( self$tmin + self$tmax ) / 2
         self$tmean_C <- ( self$tmean - 32 ) * 5/9
@@ -69,13 +88,38 @@ ModelCell <- R6Class("ModelCell",
                                            self$unadjusted_pet)
     },
     calc_sum_5_day_precip = function() {
-      self$sum_5_day_precip = calc_sum_5_day_precip(self$gross_precip)
+      self$sum_5_day_precip = calc_sum_5_day_precip(self$gross_rainfall)
     },
     calc_adjusted_curve_number =function() {
       self$curve_number <- adjust_curve_number(swb$base_curve_number,
                                                         swb$sum_5_day_precip,
                                                         1.1,
                                                         2.4)
-    } 
+    },
+    calc_runoff_cn = function() {
+      self$runoff <- calc_runoff_cn(swb$curve_number,
+                                    swb$gross_rainfall + swb$snowmelt,
+                                    hawkins=TRUE)
+    },
+    calc_fraction_as_rain_classic = function() {
+      self$fraction_as_rain <- calc_fraction_rain_classic(swb$tmin,
+                                                          swb$tmax,
+                                                          swb$tmean)
+    },
+    calc_potential_snowmelt_classic = function() {
+      self$potential_snowmelt <- calc_potential_snowmelt_classic(self$tmax,
+                                                                self$tmean)
+    },
+    calc_is_growing_season = function() {
+      self$is_growing_season <- is_growing_season(self$date, 
+                                                  self$growing_season_start,
+                                                  self$growing_season_end)
+    },
+    calc_interception_bucket = function() {
+      self$interception_storage_max <- calc_potential_interception_bucket(self$is_growing_season,
+                                                                          self$growing_season_interception_value,
+                                                                          self$nongrowing_season_interception_value)
+      self$potential_interception <- pmin(self$interception_storage_max, self$gross_precip)
+    }
   )
 )
