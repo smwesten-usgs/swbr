@@ -20,15 +20,11 @@
 #' Thornthwaite, C.W., and Mather, J.R., 1957, Instructions and tables for
 #' computing potential evapotranspiration and the water balance: Publications
 #' in Climatology, v. 10, no. 3, p. 1–104.
-calc_soil_moisture <- function( max_soil_moisture_in, apwl_in) {
-
-  TM_slope_term <- 0.478769194198665
-  TM_exp_term <- -1.03678439421169
+calc_TM_soil_moisture_exp <- function( max_soil_moisture_in, apwl_in) {
 
   SWC <- max_soil_moisture_in
 
-  soil_moisture_in <- 10^( log10(SWC) -
-                                       ( abs(apwl_in) * TM_slope_term * SWC^TM_exp_term  ) )
+  soil_moisture_in <- SWC * exp(-apwl_in/SWC)
 
   return(soil_moisture_in)
 

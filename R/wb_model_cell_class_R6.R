@@ -19,9 +19,14 @@ ModelCell <- R6Class("ModelCell",
     curve_number = 0,
     base_curve_number = 0,
     latitude = 0,
+    vars=data.frame(date=numeric(),
+                    soil_moisture_storage = numeric(),
+                    interception_storage = numeric(),
+                    snow_storage = numeric()),
     # -- state variables --
     soil_moisture_storage = 0,
     soil_moisture_storage_max = 0,
+    soil_moisture_storage_init=0,
     interception_storage = 0,
     interception_storage_max = 0,
     snow_storage = 0,
@@ -48,6 +53,7 @@ ModelCell <- R6Class("ModelCell",
     nongrowing_season_interception_value = 0.02,
     interception = 0,
     net_rainfall = 0,
+    net_infiltration=0,
     snowfall = 0,
     potential_snowmelt = 0,
     snowmelt = 0,
@@ -120,6 +126,14 @@ ModelCell <- R6Class("ModelCell",
                                                                           self$growing_season_interception_value,
                                                                           self$nongrowing_season_interception_value)
       self$potential_interception <- pmin(self$interception_storage_max, self$gross_precip)
+    },
+    calc_TM_update_soil_moisture = function(n) {
+      self$soil_moisture_storage[n] <- calc_TM_soil_moisture_exp( self$soil_moisture_storage_max[n],
+                                                                  self$accumulated_potential_water_loss[n])
+    },
+    calc_TM_update_APWL = function(n) {
+      self$accumulated_potential_water_loss[n] <- calc_TM_APWL_log(self$soil_moisture_storage_max[n],
+                                                                   self$soil_moisture_storage[n])
     }
   )
 )

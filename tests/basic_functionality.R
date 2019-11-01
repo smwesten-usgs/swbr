@@ -15,6 +15,7 @@ swb$snow_storage_init <- 2.
 swb$rooting_depth <- 1.5 # feet
 swb$available_water_capacity <- 2.0 # inches/foot
 swb$soil_moisture_storage_max <- swb$rooting_depth * swb$available_water_capacity
+swb$soil_moisture_storage_init <- swb$soil_moisture_storage_max
 
 # populate date information
 swb$month <- df$month
@@ -43,10 +44,16 @@ swb$calc_TM_adjusted_PET()
 swb$snowfall <- swb$gross_precip * (1.0 - swb$fraction_as_rain)
 swb$potential_snowmelt <- swb$calc_potential_snowmelt_classic()
 
-swb$interception_storage <- rep(0, length(swb$potential_interception))
-swb$interception <- rep(0, length(swb$potential_interception))
-swb$interception_evap <- rep(0, length(swb$potential_interception))
-swb$available_reference_et0 <- rep(0, length(swb$potential_interception))
+numrecs <- length(swb$potential_interception)
+swb$interception_storage <- rep(0, numrecs)
+swb$interception <- rep(0, numrecs)
+swb$net_infiltration <- rep(0, numrecs)
+swb$interception_evap <- rep(0, numrecs)
+swb$available_reference_et0 <- rep(0, numrecs)
+swb$soil_moisture_storage <- rep(0, numrecs)
+swb$actual_et <- rep(0, numrecs)
+swb$accumulated_potential_water_loss <- rep(0, numrecs)
+swb$soil_moisture_storage_max <- rep(swb$soil_moisture_storage_max, numrecs)
 
 swb$interception[1] <- swb$potential_interception[1]
 swb$interception_storage[1] <- swb$interception[1]
@@ -79,11 +86,39 @@ swb$infiltration <- swb$net_rainfall + swb$snowmelt - swb$runoff
 
 swb$p_minus_pe <- swb$infiltration - swb$available_reference_et0
 
-if (swb$p_minus_pe[1] > 0) {
-  swb$soil_moisture_storage[1] <- swb$soil_moisture_storage_init
-  swb$soil_moisture_storage[1] <- swb$soil_moisture_storage[1] + swb$infiltration
-} else {
-  swb$accumulated_potential_water_loss[1] <- swb$accumulated_potential_water_loss[1] - swb$p_minus_pe
+for (n in 1:numrecs) {
+  if (swb$p_minus_pe[n] > 0) {
 
-}  
+    swb$actual_et[n] <- swb$available_reference_et0[n]
+
+    if (n==1) {
+      swb$soil_moisture_storage[n] <- swb$soil_moisture_storage_init + swb$p_minus_pe[n]
+    } else {
+      swb$soil_moisture_storage[n] <- swb$soil_moisture_storage[n-1] + swb$p_minus_pe[n]
+    }
+
+    if (swb$soil_moisture_storage[n] > swb$soil_moisture_storage_max[n]) {
+      swb$net_infiltration[n] <- swb$soil_moisture_storage[n] - swb$soil_moisture_storage_max[n]
+      swb$soil_moisture_storage[n] <- swb$soil_moisture_storage_max[n]
+      swb$accumulated_potential_water_loss[n] <- 0
+    } else {
+      swb$calc_TM_update_APWL(n)
+      swb$net_infiltration[n] <- 0
+    }
+  } else {
+
+    if (n==1) {
+      swb$accumulated_potential_water_loss[n] <-  - swb$p_minus_pe[n]
+      swb$calc_TM_update_soil_moisture(n)
+      swb$actual_et[n] <- swb$soil_moisture_storage_init - swb$soil_moisture_storage[n]
+    } else {
+      swb$accumulated_potential_water_loss[n] <- swb$accumulated_potential_water_loss[n-1] - swb$p_minus_pe[n]
+      swb$calc_TM_update_soil_moisture(n)
+      swb$actual_et[n] <- swb$soil_moisture_storage[n-1] - swb$soil_moisture_storage[n]
+    }
+
+  }  
+}
+
+swb$actual_et <- swb$actual_et + swb$interception_evap
 

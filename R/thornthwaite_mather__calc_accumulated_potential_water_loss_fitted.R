@@ -16,13 +16,15 @@
 #' Thornthwaite, C.W., and Mather, J.R., 1957, Instructions and tables for
 #' computing potential evapotranspiration and the water balance: Publications
 #' in Climatology, v. 10, no. 3, p. 1–104.
-calc_APWL <- function(max_soil_moisture_in, soil_moisture_in) {
+calc_TM_APWL_fitted <- function(max_soil_moisture_in, soil_moisture_in) {
 
   TM_slope_term <-  0.478769194198665
   TM_exp_term   <- -1.03678439421169
 
   APWL <- ( log10(max_soil_moisture_in ) - log10(soil_moisture_in)) /
                 ( TM_slope_term * max_soil_moisture_in^TM_exp_term )
+
+#  APWL <- -max_soil_moisture_in * log(soil_moisture_in / max_soil_moisture_in)
 
   return (APWL)
 
