@@ -49,8 +49,8 @@ ModelCell <- R6Class("ModelCell",
     gross_rainfall = 0,
     potential_interception = 0,
     interception_evap=0,
-    growing_season_interception_value = 0.08,
-    nongrowing_season_interception_value = 0.02,
+    growing_season_interception_value = 0.05,
+    nongrowing_season_interception_value = 0.0,
     interception = 0,
     net_rainfall = 0,
     net_infiltration=0,
@@ -62,8 +62,8 @@ ModelCell <- R6Class("ModelCell",
     thornthwaite_annual_heat_index_I=0.,
     thornthwaite_exponent_a = 0.,
     monthly_mean_air_temp= 0.,
-    growing_season_start = "05/01",
-    growing_season_end = "09/15",
+    growing_season_start = "05/14",
+    growing_season_end = "09/24",
     is_growing_season=FALSE,
     calc_mean_air_temp = function() {
         self$tmean <- ( self$tmin + self$tmax ) / 2
@@ -94,7 +94,7 @@ ModelCell <- R6Class("ModelCell",
                                            self$unadjusted_pet)
     },
     calc_sum_5_day_precip = function() {
-      self$sum_5_day_precip = calc_sum_5_day_precip(self$gross_rainfall)
+      self$sum_5_day_precip = calc_sum_5_day_precip(self$net_rainfall+self$snowmelt)
     },
     calc_adjusted_curve_number =function() {
       self$curve_number <- adjust_curve_number(swb$base_curve_number,
@@ -133,6 +133,14 @@ ModelCell <- R6Class("ModelCell",
     },
     calc_TM_update_APWL = function(n) {
       self$accumulated_potential_water_loss[n] <- calc_TM_APWL_log(self$soil_moisture_storage_max[n],
+                                                                   self$soil_moisture_storage[n])
+    },
+    calc_TM_update_soil_moisture_orig = function(n) {
+      self$soil_moisture_storage[n] <- calc_TM_soil_moisture_fitted( self$soil_moisture_storage_max[n],
+                                                                  self$accumulated_potential_water_loss[n])
+    },
+    calc_TM_update_APWL_orig = function(n) {
+      self$accumulated_potential_water_loss[n] <- calc_TM_APWL_fitted(self$soil_moisture_storage_max[n],
                                                                    self$soil_moisture_storage[n])
     }
   )

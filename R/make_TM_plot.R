@@ -1,15 +1,11 @@
-make_TM_plot <- function(date,
-                         rainfall,
-                         snowmelt,
-                         reference_et0,
-                         actual_et) {
-
-  df <- data.frame(date=date,
-                   month=lubridate::month(date),
-                   rainfall=rainfall,
-                   snowmelt=snowmelt,
-                   reference_et0=reference_et0,
-                   actual_et=actual_et)
+make_TM_plot <- function(swb_obj) {
+  
+  df <- data.frame(date=swb_obj$date,
+                   month=lubridate::month(swb_obj$date),
+                   rainfall=swb_obj$net_rainfall,
+                   snowmelt=swb_obj$snowmelt,
+                   reference_et0=swb_obj$reference_et0,
+                   actual_et=swb_obj$actual_et)
 
 #  df_monthly <- df %>%
 #                  dplyr::group_by(month) %>%
