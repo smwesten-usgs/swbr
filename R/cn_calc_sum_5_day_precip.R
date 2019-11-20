@@ -15,10 +15,11 @@ calc_sum_5_day_precip <- function(precip) {
                    lag_1d=dplyr::lag(precip, n=1, default=0.0),
                    lag_2d=dplyr::lag(precip, n=2, default=0.0),
                    lag_3d=dplyr::lag(precip, n=3, default=0.0),
-                   lag_4d=dplyr::lag(precip, n=4, default=0.0))
+                   lag_4d=dplyr::lag(precip, n=4, default=0.0),
+                   lag_5d=dplyr::lag(precip, n=5, default=0.0))
 
-  lag_5d <- with( df, lag_0d + lag_1d + lag_2d + lag_3d + lag_4d )
+  lagged_precip <- with( df, lag_0d + lag_1d + lag_2d + lag_3d + lag_4d )
 
-  return( lag_5d )
+  return( lagged_precip )
 
 }

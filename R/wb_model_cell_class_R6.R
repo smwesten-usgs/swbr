@@ -38,6 +38,7 @@ ModelCell <- R6Class("ModelCell",
     actual_et = 0,
     p_minus_pe = 0,
     gross_precip = 0,
+    net_precip=0,
     sum_5_day_precip=0,
     tmin = 0,
     tmax = 0,
@@ -104,7 +105,7 @@ ModelCell <- R6Class("ModelCell",
     },
     calc_runoff_cn = function() {
       self$runoff <- calc_runoff_cn(swb$curve_number,
-                                    swb$gross_rainfall + swb$snowmelt,
+                                    swb$net_rainfall + swb$snowmelt,
                                     hawkins=TRUE)
     },
     calc_fraction_as_rain_classic = function() {

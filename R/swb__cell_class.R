@@ -56,7 +56,7 @@ new_model_cell <- function(rooting_depth, AWC, latitude, grow_start, grow_stop) 
   cel$processprecip <- function(doy) {
 
     rFREEZING <- 32.
-    rMELT_INDEX <- 1.5 * 5/9 / 25.4    # 1.5 mm/degC
+    rMELT_INDEX <- 1.5 * 9/5 * 25.4    # 1.5 mm/degC * 5
 
     lFREEZING <- ifelse (cel$tmean - (cel$tmax-cel$tmin) / 3.0 <= rFREEZING, TRUE, FALSE)
 

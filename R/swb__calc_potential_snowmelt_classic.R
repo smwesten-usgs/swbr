@@ -9,7 +9,7 @@
 #' @examples
 calc_potential_snowmelt_classic <- function(tmax, tmean) {
 
-  MELT_INDEX = 0.059  # inches per degree F above freezing (1.5 mm per degree C above freezing)
+  MELT_INDEX = 1.5 /25.4 * 5/9  # inches per degree F above freezing (1.5 mm per degree C above freezing)
 
   # freezing point of water, degrees F
   FREEZING_PT_F <- 32.

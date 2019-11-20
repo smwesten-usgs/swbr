@@ -36,13 +36,14 @@ swb$gross_rainfall <- swb$gross_precip * swb$fraction_as_rain
 # calculate the potential interception, capping the amount so it doesn't exceed the
 # actual amount of gross rainfall received on a given day
 swb$calc_interception_bucket()
-swb$potential_interception <- pmin(swb$potential_interception, swb$gross_rainfall)
+
+swb$potential_interception <- pmin(swb$potential_interception, swb$gross_precip)
+swb$net_precip <- swb$gross_precip - swb$potential_interception
 
 swb$calc_TM_PET()
 swb$calc_TM_adjusted_PET()
-
-swb$snowfall <- swb$gross_precip * (1.0 - swb$fraction_as_rain)
-swb$potential_snowmelt <- swb$calc_potential_snowmelt_classic()
+  
+swb$snowfall <- swb$net_precip * (1.0 - swb$fraction_as_rain)
 
 numrecs <- length(swb$potential_interception)
 swb$interception <- rep(0, numrecs)
@@ -57,6 +58,7 @@ swb$interception <- swb$potential_interception
 swb$net_rainfall <- swb$gross_rainfall - swb$interception
 swb$available_reference_et0 <- swb$reference_et0
 
+swb$potential_snowmelt <- swb$calc_potential_snowmelt_classic()
 swb$snow_storage[1] <- swb$snow_storage_init + swb$snowfall[1]
 swb$snowmelt[1] <- min(c(swb$snow_storage[1], swb$potential_snowmelt[1]))
 swb$snow_storage[1] <- swb$snow_storage[1] - swb$snowmelt[1]
