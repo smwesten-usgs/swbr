@@ -17,6 +17,8 @@ ModelCell <- R6Class("ModelCell",
     rooting_depth = 0.,
     available_water_capacity = 0,
     curve_number = 0,
+    cfgi = 0,
+    cfgi_init = 0,
     base_curve_number = 0,
     latitude = 0,
     vars=data.frame(date=numeric(),
@@ -58,6 +60,12 @@ ModelCell <- R6Class("ModelCell",
     snowfall = 0,
     potential_snowmelt = 0,
     snowmelt = 0,
+    arc_i__dormant = 0.5,
+    arc_iii__dormant = 1.1,
+    arc_i__growing = 1.4,
+    arc_iii__growing = 2.1,
+    arc_i_threshold = 0,
+    arc_iii_threshold = 0,
     # -- Thornthwaite-Mather related parameter values --
     thornthwaite_heat_index_i = 0,
     thornthwaite_annual_heat_index_I=0.,
@@ -97,25 +105,39 @@ ModelCell <- R6Class("ModelCell",
     calc_sum_5_day_precip = function() {
       self$sum_5_day_precip = calc_sum_5_day_precip(self$net_rainfall+self$snowmelt)
     },
+    calc_arc_threhold = function() {
+      self$arc_i_threshold <- ifelse(self$is_growing_season,
+                                     self$arc_i__growing,
+                                     self$arc_i__dormant)
+      self$arc_iii_threshold <- ifelse(self$is_growing_season,
+                                       self$arc_iii__growing,
+                                       self$arc_iii__dormant)
+    },
+    calc_cfgi = function(n, tmean_c, snow_storage, cfgi) {
+      self$cfgi[n] <- swb__update_cfgi(tmean_c,
+                                       snow_storage,
+                                       cfgi)
+    },
     calc_adjusted_curve_number =function() {
-      self$curve_number <- adjust_curve_number(swb$base_curve_number,
-                                                        swb$sum_5_day_precip,
-                                                        1.1,
-                                                        2.4)
+      self$curve_number <- adjust_curve_number(self$base_curve_number,
+                                               self$sum_5_day_precip,
+                                               self$arc_i_threshold,
+                                               self$arc_iii_threshold,
+                                               self$cfgi)
     },
     calc_runoff_cn = function() {
-      self$runoff <- calc_runoff_cn(swb$curve_number,
-                                    swb$net_rainfall + swb$snowmelt,
+      self$runoff <- calc_runoff_cn(self$curve_number,
+                                    self$net_rainfall + self$snowmelt,
                                     hawkins=TRUE)
     },
     calc_fraction_as_rain_classic = function() {
-      self$fraction_as_rain <- calc_fraction_rain_classic(swb$tmin,
-                                                          swb$tmax,
-                                                          swb$tmean)
+      self$fraction_as_rain <- calc_fraction_rain_classic(self$tmin,
+                                                          self$tmax,
+                                                          self$tmean)
     },
     calc_potential_snowmelt_classic = function() {
       self$potential_snowmelt <- calc_potential_snowmelt_classic(self$tmax,
-                                                                self$tmean)
+                                                                 self$tmean)
     },
     calc_is_growing_season = function() {
       self$is_growing_season <- is_growing_season(self$date, 
