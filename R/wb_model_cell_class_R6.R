@@ -118,9 +118,13 @@ ModelCell <- R6Class("ModelCell",
                                        snow_storage,
                                        cfgi)
     },
-    calc_adjusted_curve_number =function() {
+    calc_adjusted_curve_number =function(lag=0) {
+      
+      sum_5_day_precip <- self$sum_5_day_precip %>% dplyr::lag(n=lag,
+                                                               default=dplyr::last(self$sum_5_day_precip))
+      
       self$curve_number <- adjust_curve_number(self$base_curve_number,
-                                               self$sum_5_day_precip,
+                                               sum_5_day_precip,
                                                self$arc_i_threshold,
                                                self$arc_iii_threshold,
                                                self$cfgi)

@@ -56,13 +56,30 @@ swb$calc_interception_bucket()
 
 # potantial interception: cannot have interception values > gross precipitation amounts
 swb$potential_interception <- pmin(swb$potential_interception, swb$gross_precip)
-swb$net_precip <- swb$gross_precip - swb$potential_interception
 
 # calculate Thornthwaite potential evapotranspiration
 swb$calc_TM_PET()
 swb$calc_TM_adjusted_PET()
 
-swb$interception <- swb$potential_interception
+swb$interception[1] <- swb$potential_interception[1]
+swb$interception_storage[1] <- swb$interception[1]
+for (n in 2:length(swb$potential_interception)) {
+  swb$interception[n] <- min(c(swb$potential_interception[n],
+                               swb$interception_storage_max[n] - swb$interception_storage[n-1]))
+  swb$interception_storage[n] <- swb$interception_storage[n-1] + swb$interception[n]
+#  rFraction_Wet = ( cel%rInterceptionStorage / ( rMAXIMUM_INTERCEPTION_STORAGE + 1.0e-6) )**0.66666667_c_float
+#  rPotential_Evaporated_Interception = min( cel%rReferenceET0, rFraction_Wet * cel%rInterceptionStorage )
+#  cel%rInterceptionStorage = max( cel%rInterceptionStorage - rPotential_Evaporated_Interception, 0.0_c_float )
+#  cel%rActual_ET_interception = max( rPrevious_Interception_Storage - cel%rInterceptionStorage, 0.0_c_float )
+  fraction_wet <- ( swb$interception_storage[n] / swb$interception_storage_max + 1.0e-6)^0.6666666667
+  potential_evap_interception <- min(c(swb$reference_et0[n], 
+                                       fraction_wet * swb$interception_storage[n]))  
+  previous_interception_storage <- swb$interception_storage[n]
+  swb$interception_storage[n] <- max(c(swb$interception_storage[n] - potential_evap_interception, 0.))
+  swb$interception_evap[n] <- max( c(previous_interception_storage - swb$interception_storage[n], 0))
+  swb$available_reference_et0[n] <- swb$reference_et0[n] - swb$interception_evap[n]
+}
+
 swb$net_rainfall <- swb$gross_rainfall - swb$interception
 swb$snowfall <- swb$net_precip * (1.0 - swb$fraction_as_rain)
 
@@ -81,12 +98,14 @@ for (n in 2:length(swb$potential_snowmelt)) {
     swb$snow_storage[n] <- swb$snow_storage[n] - swb$snowmelt[n]
 }
 
-swb$calc_sum_5_day_precip()          # curve-number 5-day sum of precip + snowmelt
-swb$calc_arc_threhold()              # update antecedant runoff condition (ARC) numbers
-swb$calc_adjusted_curve_number()     # update curve number based on ARC
-swb$calc_runoff_cn()                 # calculate runoff
-
-swb$available_reference_et0 <- swb$reference_et0
+swb$calc_sum_5_day_precip()              # curve-number 5-day sum of precip + snowmelt
+swb$calc_arc_threhold()                  # update antecedant runoff condition (ARC) numbers
+#
+# ***because of the sequencing of statements in SWB 1.0, the routine that updates the 
+# curve number actually sees a lagged version of the 5-day sum of precip***
+#
+swb$calc_adjusted_curve_number(lag=1)    # update curve number based on ARC
+swb$calc_runoff_cn()                     # calculate runoff
 
 swb$infiltration <- swb$net_rainfall + swb$snowmelt - swb$runoff
 
